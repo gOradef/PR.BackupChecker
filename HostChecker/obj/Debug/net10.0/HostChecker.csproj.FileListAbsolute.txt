@@ -1,0 +1,17 @@
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\HostChecker.exe
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\HostChecker.deps.json
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\HostChecker.runtimeconfig.json
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\HostChecker.dll
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\HostChecker.pdb
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\bin\Debug\net10.0\FluentFTP.dll
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.csproj.AssemblyReference.cache
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.AssemblyInfoInputs.cache
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.AssemblyInfo.cs
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.csproj.CoreCompileInputs.cache
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChec.88AB24AE.Up2Date
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.dll
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\refint\HostChecker.dll
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.pdb
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\HostChecker.genruntimeconfig.cache
+C:\Users\a.efimov\Desktop\BackupChecker\HostChecker\obj\Debug\net10.0\ref\HostChecker.dll
