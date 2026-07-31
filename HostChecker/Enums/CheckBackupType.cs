@@ -6,6 +6,8 @@ namespace HostChecker.Enums
 {
     internal enum CheckBackupType
     {
-        TIB
+
+        TIB,
+
     }
 }

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using FluentFTP;
+using Microsoft.CSharp.RuntimeBinder;
 
 
 namespace HostChecker
@@ -15,19 +16,18 @@ namespace HostChecker
         private string[] ExcludedDirectoriesToCheck = [];
         private HostLogger _logger;
 
-        private bool IsValidHost()
+        private void IsValidHost()
         {
             try
             {
                 _logger.Debug("Подключение к ftp...");
                 client.Connect();
                 _logger.Debug("Успешно подключено!");
-                return true;
             }
             catch (Exception ex)
             {
-                _logger.Error($"Ошибка подключения к хосту");
-                return false;
+                _logger.Error($"Ошибка подключения к хосту {ex.Message}");
+                throw new Exception($"Ошибка подключения к хосту");
             }
         }
 
@@ -70,12 +70,8 @@ namespace HostChecker
             this.client = client;
             _logger = new(client.Host);
             ResultItemBuilder = new(client.Host);
-            
-            if (!IsValidHost())
-            {
-                _logger.Error("Ошибка при подключении к хосту");
-            }
 
+            IsValidHost();
         }
     }
 }

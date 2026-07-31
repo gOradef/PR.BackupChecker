@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using FluentFTP;
 using HostChecker.Enums;
 
 
 namespace HostChecker
 {
-    internal struct Folder
+    internal class Folder
     {
         Folders Name;
-        string Path;
-        string backupFileName;
-        CheckBackupType checkType;
 
-        public Folder()
+        internal Folder(FtpListItem ftpListItem)
         {
 
         }

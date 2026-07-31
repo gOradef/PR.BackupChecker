@@ -19,27 +19,28 @@ namespace HostChecker
         {
             var host4410 = new Creditionals(
                 host: "192.168.44.10",
-                user: @"premjer\postmaster",
+                user: "postmaster",
                 password: "5gdPK6away",
                 pathToBackupFolder: "/Backups");
-            var host222 = new Creditionals(
-                host: "192.168.2.22",
-                user: "premier",
-                password: "5gdPK6away",
-                pathToBackupFolder: "/");
             var host221 = new Creditionals(
                 host: "192.168.2.21",
                 user: "postmaster",
                 password: "5gdPK6away",
                 pathToBackupFolder: "/");
-            //TODO
-            //var host 224;
+            var host222 = new Creditionals(
+                host: "192.168.2.22",
+                user: "premier",
+                password: "5gdPK6away",
+                pathToBackupFolder: "/");
+            var host223 = new Creditionals(
+                host: "192.168.2.23",
+                user: "postmaster",
+                password: "5gdPK6away",
+                pathToBackupFolder: "/");
 
             if (_hostsToCheck.Count == 0)
             {
-                _hostsToCheck.Add(host4410);
-                _hostsToCheck.Add(host222);
-                _hostsToCheck.Add(host221);
+                _hostsToCheck = new List<Creditionals>() { host4410, host221, host222, host223}; //TODO 21 and 23 does not connectiong
             }
         }
         private static void RunCheck()
@@ -52,6 +53,9 @@ namespace HostChecker
                 {
                     List<ResultItem> results = new();
                     using var client = new FtpClient(hostCreds.host, hostCreds.user, hostCreds.password);
+                    client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
+                    client.Config.ValidateAnyCertificate = true;
+
                     try
                     {
                         BackupChecker checker = new(client);
@@ -65,7 +69,7 @@ namespace HostChecker
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка подключения ({hostCreds.host}): {ex.Message}");
+                        Console.WriteLine(ex.Message);
                         return [];
                     }
                     
@@ -74,7 +78,6 @@ namespace HostChecker
 
             }
             Task.WaitAll(resultsTasks);
-            
             
         }
         private static void SendResultsToZabbix()
