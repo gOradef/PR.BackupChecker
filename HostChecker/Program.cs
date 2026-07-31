@@ -1,16 +1,19 @@
 ﻿using FluentFTP;
 using HostChecker.Enums;
 using System.ComponentModel.Design;
+using Microsoft.Extensions.Logging;
+
 
 namespace HostChecker
 {
     internal class Program
     {
-        private record Creditionals(string host, string user, string password, string pathToBackupFolder);
-        private static List<Creditionals> hostsToCheck;
+        private record Creditionals(string host, string user, string password, string pathToBackupFolder, string[]? excludedDirectoriesToCheck = null);
+        private static List<Creditionals> _hostsToCheck = [];
         private static List<ResultItem> results;
+        private static ILoggerFactory _factory;
 
-        public static Dictionary<Folders, string> FolderPaths = new();
+        // public static Dictionary<Folders, string> FolderPaths = new();
 
         private static void SetupHosts()
         {
@@ -24,43 +27,55 @@ namespace HostChecker
                 user: "premier",
                 password: "5gdPK6away",
                 pathToBackupFolder: "/");
-            
+            var host221 = new Creditionals(
+                host: "192.168.2.21",
+                user: "postmaster",
+                password: "5gdPK6away",
+                pathToBackupFolder: "/");
             //TODO
-            //var host 221;
             //var host 224;
 
-            if (hostsToCheck is not null && hostsToCheck.Count == 0)
+            if (_hostsToCheck.Count == 0)
             {
-                hostsToCheck.Add(host4410);
-                hostsToCheck.Add(host222);
+                _hostsToCheck.Add(host4410);
+                _hostsToCheck.Add(host222);
+                _hostsToCheck.Add(host221);
             }
         }
         private static void RunCheck()
         {
-            foreach (var host in hostsToCheck)
+            List<Task<List<ResultItem>>> resultsTasks = [];
+            
+            foreach (var hostCreds in _hostsToCheck)
             {
-                using var client = new FtpClient(host.host, host.user, host.password);
-                try
+                var hostResult = Task.Run( List<ResultItem> () =>
                 {
-                    Console.WriteLine($"Подключение к FTP ({host.host})...");
-                    client.Connect();
-
-                    Console.WriteLine("Успешно подключено!");
-                    client.SetWorkingDirectory(host.pathToBackupFolder);
-
-
-                    var directories = client.GetListing();
-
-                    foreach (var dir in directories)
+                    List<ResultItem> results = new();
+                    using var client = new FtpClient(hostCreds.host, hostCreds.user, hostCreds.password);
+                    try
                     {
-                        Console.Write(dir.FullName);
+                        BackupChecker checker = new(client);
+                        checker.SetWorkingDirectory(hostCreds.pathToBackupFolder);
+                        if (hostCreds.excludedDirectoriesToCheck != null)
+                        {
+                            checker.SetExcludingDirectories(hostCreds.excludedDirectoriesToCheck);
+                        }
+
+                        return checker.Check();
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка подключения: {ex.Message}");
-                }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка подключения ({hostCreds.host}): {ex.Message}");
+                        return [];
+                    }
+                    
+                });
+                resultsTasks.Add(hostResult);
+
             }
+            Task.WaitAll(resultsTasks);
+            
+            
         }
         private static void SendResultsToZabbix()
         {

@@ -1,10 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "Xf4SX7RrdVI=",
+  "dgSpecHash": "uws7iqo2KJs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\HostChecker.csproj",
+  "projectFilePath": "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\HostChecker.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\a.efimov\\.nuget\\packages\\fluentftp\\54.2.0\\fluentftp.54.2.0.nupkg.sha512"
+    "C:\\Users\\goradef\\.nuget\\packages\\fluentftp\\54.2.0\\fluentftp.54.2.0.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.10\\microsoft.extensions.dependencyinjection.10.0.10.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.10\\microsoft.extensions.dependencyinjection.abstractions.10.0.10.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.logging\\10.0.10\\microsoft.extensions.logging.10.0.10.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.10\\microsoft.extensions.logging.abstractions.10.0.10.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.options\\10.0.10\\microsoft.extensions.options.10.0.10.nupkg.sha512",
+    "C:\\Users\\goradef\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.10\\microsoft.extensions.primitives.10.0.10.nupkg.sha512"
   ],
   "logs": []
 }

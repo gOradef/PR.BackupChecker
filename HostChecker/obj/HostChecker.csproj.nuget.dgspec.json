@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\HostChecker.csproj": {}
+    "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\HostChecker.csproj": {}
   },
   "projects": {
-    "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\HostChecker.csproj": {
+    "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\HostChecker.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\HostChecker.csproj",
+        "projectUniqueName": "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\HostChecker.csproj",
         "projectName": "HostChecker",
-        "projectPath": "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\HostChecker.csproj",
-        "packagesPath": "C:\\Users\\a.efimov\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\a.efimov\\Desktop\\BackupChecker\\HostChecker\\obj\\",
+        "projectPath": "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\HostChecker.csproj",
+        "packagesPath": "C:\\Users\\goradef\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\goradef\\RiderProjects\\PR.BackupChecker\\HostChecker\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\a.efimov\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\goradef\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,11 +26,11 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
-            "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {}
           }
@@ -45,16 +45,19 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.300"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "dependencies": {
             "FluentFTP": {
               "target": "Package",
               "version": "[54.2.0, )"
+            },
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[10.0.10, )"
             }
           },
           "imports": [
@@ -73,7 +76,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.204/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
