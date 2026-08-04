@@ -1,70 +1,228 @@
 ﻿using FluentFTP;
+using FluentFTP.Model.Functions;
 using HostChecker.Enums;
-using System.ComponentModel.Design;
+using HostChecker.Objects;
+using HostChecker.Services;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.Design;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Xml.Linq;
 
 
 namespace HostChecker
 {
     internal class Program
     {
-        private record Creditionals(string host, string user, string password, string pathToBackupFolder, string[]? excludedDirectoriesToCheck = null);
-        private static List<Creditionals> _hostsToCheck = [];
-        private static List<ResultItem> results;
-        private static ILoggerFactory _factory;
+        private static List<HostConfig> _hostsConfig = [];
 
-        // public static Dictionary<Folders, string> FolderPaths = new();
+        //private static List<HostConfig> CreateNewConfig() { }
+        //private static List<HostConfig> UseExistedConfig() { }
 
         private static void SetupHosts()
         {
-            var host4410 = new Creditionals(
-                host: "192.168.44.10",
-                user: "postmaster",
-                password: "5gdPK6away",
-                pathToBackupFolder: "/Backups");
-            var host221 = new Creditionals(
-                host: "192.168.2.21",
-                user: "postmaster",
-                password: "5gdPK6away",
-                pathToBackupFolder: "/");
-            var host222 = new Creditionals(
-                host: "192.168.2.22",
-                user: "premier",
-                password: "5gdPK6away",
-                pathToBackupFolder: "/");
-            var host223 = new Creditionals(
-                host: "192.168.2.23",
-                user: "postmaster",
-                password: "5gdPK6away",
-                pathToBackupFolder: "/");
+            //var host4410 = new HostCreditionals(
+            //    host: "192.168.44.10",
+            //    user: "postmaster",
+            //    password: "5gdPK6away",
+            //    pathToBackupFolder: "/Backups");
+            //var host221 = new HostCreditionals(
+            //    host: "192.168.2.21",
+            //    user: "postmaster",
+            //    password: "5gdPK6away",
+            //    pathToBackupFolder: "/");
+            //var host222 = new HostCreditionals(
+            //    host: "192.168.2.22",
+            //    user: "premier",
+            //    password: "5gdPK6away",
+            //    pathToBackupFolder: "/");
+            //var host223 = new HostCreditionals(
+            //    host: "192.168.2.23",
+            //    user: "postmaster",
+            //    password: "5gdPK6away",
+            //    pathToBackupFolder: "/");
 
-            if (_hostsToCheck.Count == 0)
+            //if (_hostsConfig.Count == 0)
+            //{
+            //    _hostsConfig = new List<HostCreditionals>() { host4410, host221, host222, host223};
+            //}
+            if (File.Exists("hosts.json"))
             {
-                _hostsToCheck = new List<Creditionals>() { host4410, host221, host222, host223}; //TODO 21 and 23 does not connectiong
+                try
+                {
+                    var options = new JsonSerializerOptions { WriteIndented = true };
+                    _hostsConfig = JsonSerializer.Deserialize<List<HostConfig>>(File.ReadAllText("hosts.json"))!;
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"Can not deserialize hosts.json. Check correctness of the file. {ex.Message}");
+                    throw new Exception("Error with deserialization of the file.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("=== CONFIG IS NOT PRESENTED IN WORKDIR (hosts.json) ===");
+                Console.WriteLine("=== IF YOU WANT TO CREATE NEW CONFIG, PRESS 'C' ===");
+                
+                if (Console.ReadKey(true).Key == ConsoleKey.C) {
+                    Func<HostCreditionals?> createNewHostCreds = () =>
+                    {
+                        Console.Write("Enter ip address of host: ");
+                        var host = Console.ReadLine();
+                        Console.Write("Enter username: ");
+                        var user = Console.ReadLine();
+                        Console.Write("Enter password: ");
+                        var password = Console.ReadLine();
+                        Console.Write("Enter path to root backup folder on host (by default '/'): ");
+                        var rootPath = Console.ReadLine();
+                        if (rootPath == null)
+                        {
+                            rootPath = "/";
+                        }
+
+                        Console.WriteLine("Check correctness of inserted data: ");
+                        Console.WriteLine(
+                            $"Host: {host} \n" +
+                            $"User: {user} \n" +
+                            $"Password: {password} \n" +
+                            $"Root backup folder: {rootPath}");
+                        Console.WriteLine("Press 'n' to reassign the host \n " +
+                            "Press 'y' to procceed. \n");
+
+
+                        var insertedKey = Console.ReadKey(true).Key;
+
+                        while (insertedKey is not (ConsoleKey.Y or ConsoleKey.N)) {
+                            Console.WriteLine("Please enter (y or n)");
+                            insertedKey = Console.ReadKey(true).Key;
+                        }
+
+                        if (insertedKey == ConsoleKey.N)
+                        {
+                            return null;
+                        }
+                        else if (insertedKey == ConsoleKey.Y)
+                        {
+                            Console.WriteLine($"Testing connection {host}...");
+                            using var client = new FtpClient(host, user, password);
+                            client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
+                            client.Config.ValidateAnyCertificate = true;
+
+                            try
+                            {
+                                client.Connect();
+                                Console.WriteLine($"Sucsessfully able to connect the host. Adding {host} to config...");
+                                return new HostCreditionals(host, user, password, rootPath);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Host {host} can not able to estalbish connection. Check creditionals");
+                                Console.WriteLine($"Add host to config anyway? (y/n)");
+                                var key = Console.ReadKey(true).Key;
+                                if (key == ConsoleKey.Y)
+                                {
+                                    return new HostCreditionals(host, user, password, rootPath);
+                                }
+                                if (key == ConsoleKey.N)
+                                {
+                                    return null;
+                                }
+                            }
+                        }
+                        return null;
+                    };
+                    List<HostCreditionals> configs = new();
+                    while (true) {
+                        var hostcreds = createNewHostCreds();
+                        if (hostcreds != null)
+                        {
+                            configs.Add(hostcreds);
+                        }
+                        string[] hosts = new string[configs.Count];
+
+                        for (int i = 0; i < configs.Count; i++)
+                        {
+                            hosts[i] = configs[i].Host;
+                        }
+
+                        Console.WriteLine($"Enter 's' to save current config (contains: {string.Join(", ", hosts)}). Or other key to continue");
+
+                        if (Console.ReadKey(true).Key == ConsoleKey.S)
+                        {
+                            break;
+                        }
+                    }
+                    Console.WriteLine("=== Started scanning hosts on backup pattern... ===");
+                    List<Task<List<ResultPathItem>>> resultsTasks = [];
+
+                    // Add this line to populate _hostsConfig with the configs you just created
+                    _hostsConfig = configs.Select(c => new HostConfig(c, new List<HostPath>())).ToList();
+
+                    foreach (var creds in configs)
+                    {
+                        var task = Task.Run(() =>
+                        {
+                            try
+                            {
+                                using var client = new FtpClient(creds.Host, creds.User, creds.Password);
+                                client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
+                                client.Config.ValidateAnyCertificate = true;
+
+                                HostPathsResolver pathsResolver = new(client);
+                                pathsResolver.SetWorkingDirectory(creds.PathToRootBackupFolder);
+                                return pathsResolver.GetPaths();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                return new List<ResultPathItem>();
+                            }
+                        });
+                        resultsTasks.Add(task);
+                    }
+
+                    Task.WaitAll(resultsTasks.ToArray());
+
+                    // Now this loop will work because _hostsConfig has items
+                    foreach (var elHost in resultsTasks)
+                    {
+                        if (elHost.Result.Count > 0)
+                        {
+                            var hostName = elHost.Result[0].Host;
+                            var hostCfg = _hostsConfig.FirstOrDefault(el => el.Creditionals.Host == hostName);
+
+                            if (hostCfg != null)
+                            {
+                                var index = _hostsConfig.IndexOf(hostCfg);
+                                _hostsConfig[index] = hostCfg with { Paths = elHost.Result.Select(a => a.path).ToList() };
+                            }
+                        }
+                    }
+
+                    var options = new JsonSerializerOptions { WriteIndented = true };
+                    string jsonString = JsonSerializer.Serialize(_hostsConfig, options);
+
+                    File.WriteAllText("hosts.json", jsonString);
+                }
             }
         }
-        private static void RunCheck()
+        private static void RunCheckBackups()
         {
-            List<Task<List<ResultItem>>> resultsTasks = [];
+            List<Task<List<ResultBackupItem>>> resultsTasks = [];
             
-            foreach (var hostCreds in _hostsToCheck)
+            foreach (var hostConfig in _hostsConfig)
             {
-                var hostResult = Task.Run( List<ResultItem> () =>
+                var hostResult = Task.Run( List<ResultBackupItem> () =>
                 {
-                    List<ResultItem> results = new();
-                    using var client = new FtpClient(hostCreds.host, hostCreds.user, hostCreds.password);
+                    List<ResultBackupItem> results = new();
+                    using var client = new FtpClient(hostConfig.Creditionals.Host, hostConfig.Creditionals.User, hostConfig.Creditionals.Password);
                     client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
                     client.Config.ValidateAnyCertificate = true;
 
                     try
                     {
-                        BackupChecker checker = new(client);
-                        checker.SetWorkingDirectory(hostCreds.pathToBackupFolder);
-                        if (hostCreds.excludedDirectoriesToCheck != null)
-                        {
-                            checker.SetExcludingDirectories(hostCreds.excludedDirectoriesToCheck);
-                        }
-
+                        BackupChecker checker = new(client, hostConfig.Paths);
+                        checker.SetWorkingDirectory(hostConfig.Creditionals.PathToRootBackupFolder);
                         return checker.Check();
                     }
                     catch (Exception ex)
@@ -84,40 +242,11 @@ namespace HostChecker
         {
 
         }
-        //private static void SetupFolderPaths()
-        //{
-        //    // .asxcdertgbnj134234fgrty
-        //    FolderPaths[Folders.C_Backup] = "1C_Backup";
-        //    FolderPaths[Folders.C_Buh_83] = "1C_Buh_8.3";
-        //    FolderPaths[Folders.C_BUH_8_Maxim] = "1C_BUH_8_Maxim";
-        //    FolderPaths[Folders.C_Zup] = "1C_Zup";
-        //    FolderPaths[Folders.C_ZUP_8_Maxim] = "1C_ZUP_8_Maxim";
-        //    FolderPaths[Folders.Arsan_1C] = "Arsan_1C";
-
-        //    // .asxcdertgbnj134234fgrty
-        //    // /Backups/TS/Base/... BUT(!) exclude 1C_Bases
-        //    FolderPaths[Folders.TS] = "TS/Base";
-
-
-        //    // ?
-        //    FolderPaths[Folders.Acronis] = "Acronis";
-        //    FolderPaths[Folders.Kerio] = "Kerio";
-
-        //    // .347ujhwqmsjkth480qekmcx
-        //    FolderPaths[Folders.mobile_prkzn] = "mobile_prkzn";
-
-        //    // .tbz
-        //    FolderPaths[Folders.Ideco] = "Ideco";
-        //    FolderPaths[Folders.Ideco_TS] = "Ideco_TS";
-
-        //    // .bak
-        //    FolderPaths[Folders.infobase] = "infobase";
-        //}
         static void Main(string[] args)
         {
             SetupHosts();
-            RunCheck();
-            SendResultsToZabbix();
+            RunCheckBackups();
+            //SendResultsToZabbix();
         }
     }
 }

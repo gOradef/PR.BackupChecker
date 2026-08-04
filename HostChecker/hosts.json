@@ -1,0 +1,22 @@
+[
+    {
+      "creditionals": {
+        "host": "192.168.44.10",
+        "user": "",
+        "password": "",
+        "workingDirectory":  ""
+      },
+      "paths": {
+        "path": "/"
+      }
+    },
+    {
+
+    },
+    {
+
+    },
+    {
+
+    }
+  ]
