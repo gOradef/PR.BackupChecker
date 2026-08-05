@@ -14,7 +14,12 @@ public class HostLogger
     }
 
     public void Info(string message) => Console.WriteLine($"[INFO] {_service}({_host}): " + message);
-    public void Debug(string message) => Console.WriteLine($"[DEBUG] {_service}({_host}): " + message);
+#if DEBUG
+    public void Debug(string message)
+    {
+        Console.WriteLine($"[DEBUG] {_service}({_host}): " + message);
+    }
+#endif
     public void Error(string message) => Console.WriteLine($"[ERROR] {_service}({_host}): " + message);
     public void Fatal(string message) => Console.WriteLine($"[FATAL] {_service}({_host}): " + message);
 }

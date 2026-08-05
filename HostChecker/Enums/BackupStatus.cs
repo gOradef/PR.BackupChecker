@@ -6,7 +6,7 @@ namespace HostChecker.Enums
 {
     internal enum BackupStatus
     {
-        OK,
-        BAD
+        BAD,
+        OK
     }
 }

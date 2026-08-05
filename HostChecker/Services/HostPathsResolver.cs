@@ -14,13 +14,6 @@ namespace HostChecker.Services
     internal class HostPathsResolver : HostClient
     {
         ResultPathItemBuilder builder;
-        private static readonly Dictionary<string, BackupExtension> ExtensionMap =
-    new(StringComparer.OrdinalIgnoreCase)
-{
-    { ".asxcdertgbnj134234fgrty", BackupExtension.dotasxcdertgbnj134234fgrty },
-    { ".347ujhwqmsjkth480qekmcx", BackupExtension.dot347ujhwqmsjkth480qekmcx },
-    { ".tib", BackupExtension.TIB }
-};
 
         internal HostPathsResolver(FtpClient client) : base(client, "HostPathsResolver")
         {

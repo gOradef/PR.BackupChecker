@@ -1,4 +1,5 @@
 ﻿using FluentFTP;
+using HostChecker.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +13,14 @@ namespace HostChecker.Services
     {
         protected HostLogger _logger;
         protected FtpClient client;
-
+  
+        protected private static readonly Dictionary<string, BackupExtension> ExtensionMap =
+    new(StringComparer.OrdinalIgnoreCase)
+{
+    { ".asxcdertgbnj134234fgrty", BackupExtension.dotasxcdertgbnj134234fgrty },
+    { ".347ujhwqmsjkth480qekmcx", BackupExtension.dot347ujhwqmsjkth480qekmcx },
+    { ".tib", BackupExtension.TIB }
+};
         protected internal void SetWorkingDirectory(string path)
         {
             client.SetWorkingDirectory(path);
@@ -22,9 +30,9 @@ namespace HostChecker.Services
         {
             try
             {
-                _logger.Debug("Подключение к ftp...");
+                _logger.Info("Подключение к ftp...");
                 client.Connect();
-                _logger.Debug("Успешно подключено!");
+                _logger.Info("Успешно подключено!");
             }
             catch (Exception ex)
             {
