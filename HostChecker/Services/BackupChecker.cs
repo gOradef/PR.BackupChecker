@@ -38,19 +38,16 @@ namespace HostChecker.Services
                 {
                     var modifiedTime = client.GetModifiedTime(item.File.FullName);
                     //_logger.Debug(item.File.FullName + "\t" + modifiedTime);
-                    bool isBackupActual = modifiedTime > DateTime.Now - TimeSpan.FromDays(2);
+                    bool isBackupActual = modifiedTime > DateTime.Now - TimeSpan.FromDays(1);
                     results.Add(ResultItemBuilder.Create(isBackupActual ? BackupStatus.OK : BackupStatus.BAD,
                         item.File.Name, item.File.FullName, item.File.Modified));
                 }
-                /*TODO algorithm
-                 * 1. Check files from paths
-                 * 2. Check last data file modification for today
-                 * 3. If file does not exists, check last file
-                 * 4. If file is not provided. Open issue: rather no backups or need to exclude that folder
-                 */
             }
 #if DEBUG
-            foreach (var el in results.OrderBy(el => el.Status))
+            foreach (var el in results
+                .OrderBy(el => el.Status)
+                .ThenBy(el => el.BackupName)
+                .ThenBy(el => el.ModifiedTime))
             {
                 _logger.Debug($"{el.Status}: {el.ModifiedTime}\t{el.BackupName}\t{el.Path}");
             }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -217,16 +218,28 @@ namespace HostChecker
             }
             Task.WaitAll(resultsTasks);
             
+            var sb = new StringBuilder();
+            foreach (var hostBackups in resultsTasks.Select(el => el.Result))
+            {
+                var badBackups = hostBackups.Where(a => a.Status == BackupStatus.BAD).OrderBy(a => a.ModifiedTime);
+                sb.Append($"=== Bad backups of {hostBackups.FirstOrDefault()?.Host} ({badBackups.Count()}/{hostBackups.Count}) ===\n");
+                foreach(var backup in badBackups)
+                {
+                    sb.AppendLine($"Last update: {backup.ModifiedTime} \t {backup.Path}");
+                }
+                Console.WriteLine(sb.ToString());
+                sb.Clear();
+            }
         }
         private static void SendResultsToZabbix()
         {
-
+            
         }
         static void Main(string[] args)
         {
             SetupHosts();
             RunCheckBackups();
-            //SendResultsToZabbix();
+            SendResultsToZabbix();
         }
     }
 }
