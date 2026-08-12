@@ -7,19 +7,26 @@ public class HostLogger
     private readonly string _service;
     private ILogger _logger;
 
+    private delegate void Log(string tag, string message);
+    private Log _log = new((tag, message) => {});
+
     public HostLogger(string hostPrefix, string servicePrefix)
     {
         _host = hostPrefix;
         _service = servicePrefix;
+
+#if DEBUG
+        _log += (tag, message) =>
+        {
+            Console.WriteLine($"[{tag}] {_service}({_host}): " + message);
+        };
+#endif
     }
 
-    public void Info(string message) => Console.WriteLine($"[INFO] {_service}({_host}): " + message);
-#if DEBUG
-    public void Debug(string message)
-    {
-        Console.WriteLine($"[DEBUG] {_service}({_host}): " + message);
-    }
-#endif
-    public void Error(string message) => Console.WriteLine($"[ERROR] {_service}({_host}): " + message);
-    public void Fatal(string message) => Console.WriteLine($"[FATAL] {_service}({_host}): " + message);
+    public void Info(string message) => _log("INFO", message);
+
+    public void Debug(string message) => _log("DEBUG", message);
+    public void Error(string message) => _log("ERROR", message);
+
+    public void Fatal(string message) => _log("FATAL", message);
 }

@@ -11,14 +11,13 @@ using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
-
 namespace HostChecker
 {
     internal class Program
     {
         private static List<HostConfig> _hostsConfig = [];
+        private static readonly List<Task<List<ResultBackupItem>>> BackupsResultTasks = [];
 
-        //private static List<HostConfig> CreateNewConfig() { }
         private static void UseExistedConfig() {
             try
             {
@@ -31,9 +30,9 @@ namespace HostChecker
                 throw new Exception("Error with deserialization of the file.");
             }
         }
+        
         private static void CreateNewConfig()
         {
-            Console.WriteLine("=== CONFIG IS NOT PRESENTED IN WORKDIR (hosts.json) ===");
             Console.WriteLine("=== IF YOU WANT TO CREATE NEW CONFIG, PRESS 'C' ===");
 
             if (Console.ReadKey(true).Key == ConsoleKey.C)
@@ -61,7 +60,6 @@ namespace HostChecker
                         $"Root backup folder: {rootPath}");
                     Console.WriteLine("Press 'n' to reassign the host \n " +
                         "Press 'y' to procceed. \n");
-
 
                     var insertedKey = Console.ReadKey(true).Key;
 
@@ -105,6 +103,7 @@ namespace HostChecker
                     }
                     return null;
                 };
+                
                 List<HostCreditionals> configs = new();
                 while (true)
                 {
@@ -127,6 +126,7 @@ namespace HostChecker
                         break;
                     }
                 }
+                
                 Console.WriteLine("=== Started scanning hosts on backup pattern... ===");
                 List<Task<List<ResultPathItem>>> resultsTasks = [];
 
@@ -179,65 +179,130 @@ namespace HostChecker
             }
         }
 
-        private static void SetupHosts()
+        private static void LoadHostsConfig(string[] args)
         {
-            if (File.Exists("hosts.json"))
+            if (args.Length == 0 && File.Exists("hosts.json"))
                 UseExistedConfig();
-            else
+            else if (args.Length == 0 && !File.Exists("hosts.json"))
+            {
+                throw new Exception("No hosts.json provided. Run with 'new' to create config first");
+            }
+            else if (args.Length != 0 && args[0] == "new")
                 CreateNewConfig();
         }
+        
         private static void RunCheckBackups()
         {
-            List<Task<List<ResultBackupItem>>> resultsTasks = [];
-            
             foreach (var hostConfig in _hostsConfig)
             {
-                var hostResult = Task.Run( List<ResultBackupItem> () =>
+                var task = Task.Run(() =>
                 {
-                    List<ResultBackupItem> results = new();
-                    using var client = new FtpClient(hostConfig.Creditionals.Host, hostConfig.Creditionals.User, hostConfig.Creditionals.Password);
-                    client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
-                    client.Config.ValidateAnyCertificate = true;
-                    client.Config.SanitizeTraversal = false;
-
                     try
                     {
+                        using var client = new FtpClient(hostConfig.Creditionals.Host, 
+                                                         hostConfig.Creditionals.User, 
+                                                         hostConfig.Creditionals.Password);
+                        client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
+                        client.Config.ValidateAnyCertificate = true;
+                        client.Config.SanitizeTraversal = false;
+
                         BackupChecker checker = new(client, hostConfig.Paths);
                         checker.SetWorkingDirectory(hostConfig.Creditionals.PathToRootBackupFolder);
                         return checker.Check();
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
-                        return [];
+#if DEBUG
+                        Console.WriteLine($"Exception for host {hostConfig.Creditionals.Host}: {ex.Message}");
+#endif
+                        return new List<ResultBackupItem>(); // Возвращаем пустой список при ошибке
                     }
-                    
                 });
-                resultsTasks.Add(hostResult);
-
+                BackupsResultTasks.Add(task);
             }
-            Task.WaitAll(resultsTasks);
             
-            var sb = new StringBuilder();
-            foreach (var hostBackups in resultsTasks.Select(el => el.Result))
-            {
-                var badBackups = hostBackups.Where(a => a.Status == BackupStatus.BAD).OrderBy(a => a.ModifiedTime);
-                sb.Append($"=== Bad backups of {hostBackups.FirstOrDefault()?.Host} ({badBackups.Count()}/{hostBackups.Count}) ===\n");
-                foreach(var backup in badBackups)
-                {
-                    sb.AppendLine($"Last update: {backup.ModifiedTime} \t {backup.Path}");
-                }
-                Console.WriteLine(sb.ToString());
-                sb.Clear();
-            }
+            Task.WaitAll(BackupsResultTasks.ToArray());
         }
+        
         private static void SendResultsToZabbix()
         {
-            
+            var allBackups = new List<object>();
+
+            for (int i = 0; i < BackupsResultTasks.Count; i++)
+            {
+                var hostBackupsTask = BackupsResultTasks[i];
+                var hostConfig = _hostsConfig[i];
+                var hostName = hostConfig.Creditionals.Host;
+
+                if (hostBackupsTask.IsFaulted)
+                {
+                    allBackups.Add(new
+                    {
+                        host_name = hostName,
+                        backup_name = "ERROR",
+                        backup_path = hostBackupsTask.Exception?.InnerException?.Message ?? "Unknown error",
+                        backup_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                    continue;
+                }
+
+                var hostBackups = hostBackupsTask.Result;
+
+                if (hostBackups == null || hostBackups.Count == 0)
+                {
+                    allBackups.Add(new
+                    {
+                        host_name = hostName,
+                        backup_name = "INVALID_HOST",
+                        backup_path = "/none",
+                        backup_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                    continue;
+                }
+
+                foreach (var backup in hostBackups)
+                {
+                    string backupName = System.IO.Path.GetFileName(backup.Path);
+                    if (string.IsNullOrEmpty(backupName))
+                    {
+                        backupName = "unknown_backup";
+                    }
+
+                    allBackups.Add(new
+                    {
+                        host_name = hostName,
+                        backup_name = backupName,
+                        backup_path = backup.Path,
+                        backup_time = backup.ModifiedTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                }
+            }
+
+            if (allBackups.Count == 0)
+            {
+                allBackups.Add(new
+                {
+                    host_name = "NO_DATA",
+                    backup_name = "NO_DATA",
+                    backup_path = "/none",
+                    backup_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+
+            var lldData = new { data = allBackups };
+
+            var jsonOptions = new JsonSerializerOptions 
+            { 
+                WriteIndented = false
+            };
+            string jsonString = JsonSerializer.Serialize(lldData, jsonOptions);
+
+            Console.WriteLine(jsonString);
         }
+        
         static void Main(string[] args)
         {
-            SetupHosts();
+            LoadHostsConfig(args);
             RunCheckBackups();
             SendResultsToZabbix();
         }
