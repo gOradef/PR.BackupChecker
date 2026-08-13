@@ -1,3 +1,12 @@
 <Solution>
-  <Project Path="HostChecker/HostChecker.csproj" />
+  <Project Path="CreateConfig/CreateConfig.csproj" Id="bea379be-3426-420a-9ebd-b078fc577514">
+    <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
+  </Project>
+  <Project Path="DiskAvalailbleSpace/DiskAvalailbleSpace.csproj" Id="81d1c689-8246-4067-88e9-1b791a34d333">
+    <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
+  </Project>
+  <Project Path="HostChecker/HostChecker.csproj">
+    <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
+  </Project>
+  <Project Path="HostLibrary/HostLibrary.csproj" />
 </Solution>

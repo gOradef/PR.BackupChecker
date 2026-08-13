@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HostChecker.Enums
+namespace HostLibrary
 {
-    internal enum BackupStatus
+    public enum BackupStatus
     {
         BAD,
         OK

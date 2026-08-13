@@ -1,5 +1,5 @@
 ﻿using FluentFTP;
-using HostChecker.Enums;
+using HostLibrary;
 using System;
 using System.Collections.Generic;
 using System.Text;

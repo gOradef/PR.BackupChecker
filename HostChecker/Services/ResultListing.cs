@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using HostChecker.Enums;
-using HostChecker.Objects;
+using HostLibrary;
 
 namespace HostChecker.Services
 {

@@ -1,6 +1,5 @@
 ﻿using FluentFTP;
-using HostChecker.Enums;
-using HostChecker.Objects;
+using HostLibrary;
 using Microsoft.CSharp.RuntimeBinder;
 using System;
 using System.Collections.Generic;
