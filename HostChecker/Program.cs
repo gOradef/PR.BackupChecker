@@ -1,6 +1,5 @@
 ﻿using FluentFTP;
 using FluentFTP.Model.Functions;
-using HostLibrary;
 using HostChecker.Services;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.Design;
@@ -9,13 +8,14 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
+using HostLibrary.Config;
 
 namespace HostChecker
 {
     internal class Program
     {
         private static List<HostConfig> _hostsConfig = [];
-        private static readonly List<Task<List<ResultBackupItem>>> BackupsResultTasks = [];
+        private static readonly List<Task<List<ResultItem>>> BackupsResultTasks = [];
 
         private static void UseExistedConfig() {
             try
@@ -51,14 +51,14 @@ namespace HostChecker
                     try
                     {
                         using var client = new FtpClient(hostConfig.Creditionals.Host, 
-                                                         hostConfig.Creditionals.User, 
-                                                         hostConfig.Creditionals.Password);
+                                                         hostConfig.Creditionals.Ftp.User, 
+                                                         hostConfig.Creditionals.Ftp.Password);
                         client.Config.EncryptionMode = FtpEncryptionMode.Explicit;
                         client.Config.ValidateAnyCertificate = true;
                         client.Config.SanitizeTraversal = false;
 
                         BackupChecker checker = new(client, hostConfig.Paths);
-                        checker.SetWorkingDirectory(hostConfig.Creditionals.PathToRootBackupFolder);
+                        checker.SetWorkingDirectory(hostConfig.Creditionals.Ftp.PathToRootBackupFolder);
                         return checker.Check();
                     }
                     catch (Exception ex)
@@ -66,7 +66,7 @@ namespace HostChecker
 #if DEBUG
                         Console.WriteLine($"Exception for host {hostConfig.Creditionals.Host}: {ex.Message}");
 #endif
-                        return new List<ResultBackupItem>(); // Возвращаем пустой список при ошибке
+                        return new List<ResultItem>(); // Возвращаем пустой список при ошибке
                     }
                 });
                 BackupsResultTasks.Add(task);

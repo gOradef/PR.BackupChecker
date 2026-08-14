@@ -1,10 +1,12 @@
-﻿using FluentFTP;
-using HostLibrary;
+﻿using CreateConfig;
+using FluentFTP;
+using HostLibrary.Classes;
+using HostLibrary.Config;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace HostChecker.Services
+namespace CreateConfig
 {
     /// <summary>
     /// Scans given host resursavelly across all directories presented on host. 
@@ -19,11 +21,11 @@ namespace HostChecker.Services
             builder = new(client.Host);
         }
 
-        internal List<ResultPathItem> GetPaths()
+        internal List<ResultItem> GetPaths()
         {
             _logger.Info("Started searching for backups paths");
 
-            var result = new List<ResultPathItem>();
+            var result = new List<ResultItem>();
             var rootPath = client.GetWorkingDirectory();
             var directoriesToScan = new Stack<string>();
             directoriesToScan.Push(rootPath);

@@ -1,5 +1,6 @@
 ﻿using FluentFTP;
-using HostLibrary;
+using HostLibrary.Classes;
+using HostLibrary.Config;
 using Microsoft.CSharp.RuntimeBinder;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,9 @@ namespace HostChecker.Services
         private ResultBackupItemBuilder ResultItemBuilder;
         private string HostName; // Сохраняем имя хоста для использования в ошибках
 
-        internal List<ResultBackupItem> Check()
+        internal List<ResultItem> Check()
         {
-            List<ResultBackupItem> results = new();
+            List<ResultItem> results = new();
             
             // Проверяем, есть ли пути для проверки
             var enabledPaths = Paths.Where(el => el.IsEnabled == true).ToList();

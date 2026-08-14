@@ -1,4 +1,4 @@
-namespace HostChecker.Services;
+namespace HostLibrary.Classes;
 using Microsoft.Extensions.Logging;
 
 public class HostLogger

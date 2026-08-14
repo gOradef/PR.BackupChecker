@@ -1,27 +1,27 @@
 ﻿using FluentFTP;
-using HostLibrary;
+using HostLibrary.Config;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace HostChecker.Services
+namespace HostLibrary.Classes
 {
     /// <summary>
     /// Logger and client for using host by ftp client
     /// </summary>
-    internal class HostClient
+    public class HostClient
     {
         protected HostLogger _logger;
         protected FtpClient client;
   
-        protected private static readonly Dictionary<string, BackupExtension> ExtensionMap =
+        protected internal static readonly Dictionary<string, BackupExtension> ExtensionMap =
     new(StringComparer.OrdinalIgnoreCase)
 {
     { ".asxcdertgbnj134234fgrty", BackupExtension.dotasxcdertgbnj134234fgrty },
     { ".347ujhwqmsjkth480qekmcx", BackupExtension.dot347ujhwqmsjkth480qekmcx },
     { ".tib", BackupExtension.TIB }
 };
-        protected internal void SetWorkingDirectory(string path)
+        public void SetWorkingDirectory(string path)
         {
             client.SetWorkingDirectory(path);
         }
@@ -41,7 +41,7 @@ namespace HostChecker.Services
             }
         }
 
-        internal HostClient(FtpClient client, string serviceName)
+        public HostClient(FtpClient client, string serviceName)
         {
             this.client = client;
             _logger = new(client.Host, serviceName);

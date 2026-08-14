@@ -5,7 +5,7 @@
   <Project Path="DiskAvalailbleSpace/DiskAvalailbleSpace.csproj" Id="81d1c689-8246-4067-88e9-1b791a34d333">
     <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
   </Project>
-  <Project Path="HostChecker/HostChecker.csproj">
+  <Project Path="HostChecker/CheckBackup.csproj">
     <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
   </Project>
   <Project Path="HostLibrary/HostLibrary.csproj" />

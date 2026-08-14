@@ -1,4 +1,4 @@
-﻿namespace HostLibrary
+﻿namespace HostLibrary.Config
 {
     public enum BackupExtension
     {

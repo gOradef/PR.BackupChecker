@@ -5,15 +5,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	  <BaseOutputPath>..\bin</BaseOutputPath>
+	  <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FluentFTP" Version="54.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.10" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\HostLibrary\HostLibrary.csproj" />
 	</ItemGroup>
-
+	<ItemGroup>
+	  <PackageReference Include="FluentFTP" Version="54.2.0" />
+	  <PackageReference Include="SSH.NET" Version="2026.0.0" />
+	</ItemGroup>
 </Project>
