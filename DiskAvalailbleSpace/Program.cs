@@ -8,10 +8,22 @@ namespace DiskAvalailbleSpace
 {
     internal class Program
     {
+        class VolumeInfo
+        {
+            public string Filesystem { get; set; }
+            public string Size { get; set; }
+            public string Used { get; set; }
+            public string Available { get; set; }
+            public string UsePercent { get; set; }
+            public string MountPoint { get; set; }
+            public string VolumeType { get; set; }
+        }
+
         class HostResult
         {
             public string Host { get; set; }
             public bool Success { get; set; }
+            public List<VolumeInfo> Volumes { get; set; }
             public long TotalSizeBytes { get; set; }
             public long TotalUsedBytes { get; set; }
             public long TotalAvailableBytes { get; set; }
@@ -51,53 +63,84 @@ namespace DiskAvalailbleSpace
 
                         // Parse the output
                         string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                        var diskInfoList = new List<Dictionary<string, string>>();
+                        var volumeList = new List<VolumeInfo>();
 
                         foreach (string line in lines)
                         {
                             string trimmedLine = line.Trim();
 
-                            // Check for /dev/mapper (LVM) or /dev/md (software RAID)
-                            if (trimmedLine.Contains("/dev/mapper") || trimmedLine.Contains("/dev/md"))
+                            // Skip header line
+                            if (trimmedLine.StartsWith("Filesystem") || trimmedLine.StartsWith("rootfs"))
+                                continue;
+
+                            // Skip temporary filesystems
+                            if (trimmedLine.Contains("tmpfs") ||
+                                trimmedLine.Contains("devtmpfs") ||
+                                trimmedLine.Contains("none") ||
+                                trimmedLine.Contains("rootfs") ||
+                                trimmedLine.Contains("/dev/loop") ||
+                                trimmedLine.Contains("/dev/root"))
+                                continue;
+
+                            string[] parts = Regex.Split(trimmedLine, @"\s+");
+
+                            if (parts.Length >= 6)
                             {
-                                string[] parts = Regex.Split(trimmedLine, @"\s+");
+                                string filesystem = parts[0];
+                                string size = parts[1];
+                                string used = parts[2];
+                                string available = parts[3];
+                                string usePercent = parts[4];
+                                string mountPoint = parts[5];
 
-                                if (parts.Length >= 6)
+                                // Determine volume type
+                                string volumeType = "Other";
+                                if (filesystem.Contains("/dev/mapper/"))
                                 {
-                                    string filesystem = parts[0];
-                                    string size = parts[1];
-                                    string used = parts[2];
-                                    string available = parts[3];
-                                    string usePercent = parts[4];
-                                    string mountPoint = parts[5];
+                                    volumeType = "LVM";
+                                }
+                                else if (filesystem.Contains("/dev/md"))
+                                {
+                                    volumeType = "Software RAID";
+                                }
+                                else if (filesystem.Contains("/dev/sd") || filesystem.Contains("/dev/hd"))
+                                {
+                                    volumeType = "Physical Disk";
+                                }
 
-                                    // Skip if mount point is already added
-                                    if (!diskInfoList.Any(d => d["MountPoint"] == mountPoint))
+                                // Only add if it's a significant volume (size > 1GB or important mount points)
+                                long sizeBytes = ParseSizeToBytes(size);
+                                if (sizeBytes > 1024 * 1024 * 1024 || // > 1GB
+                                    mountPoint == "/" ||
+                                    mountPoint.StartsWith("/Volume") ||
+                                    mountPoint.StartsWith("/volume") ||
+                                    mountPoint.StartsWith("/mnt/pools") ||
+                                    mountPoint.StartsWith("/nfs"))
+                                {
+                                    volumeList.Add(new VolumeInfo
                                     {
-                                        diskInfoList.Add(new Dictionary<string, string>
-                                        {
-                                            ["Filesystem"] = filesystem,
-                                            ["MountPoint"] = mountPoint,
-                                            ["Available"] = available,
-                                            ["Used"] = used,
-                                            ["Size"] = size,
-                                            ["UsePercent"] = usePercent
-                                        });
-                                    }
+                                        Filesystem = filesystem,
+                                        Size = size,
+                                        Used = used,
+                                        Available = available,
+                                        UsePercent = usePercent,
+                                        MountPoint = mountPoint,
+                                        VolumeType = volumeType
+                                    });
                                 }
                             }
                         }
 
-                        // Calculate total storage (include LVM and RAID only)
+                        // Calculate total storage
                         long totalAvailableBytes = 0;
                         long totalSizeBytes = 0;
                         long totalUsedBytes = 0;
 
-                        foreach (var disk in diskInfoList)
+                        foreach (var vol in volumeList)
                         {
-                            totalAvailableBytes += ParseSizeToBytes(disk["Available"]);
-                            totalSizeBytes += ParseSizeToBytes(disk["Size"]);
-                            totalUsedBytes += ParseSizeToBytes(disk["Used"]);
+                            totalAvailableBytes += ParseSizeToBytes(vol.Available);
+                            totalSizeBytes += ParseSizeToBytes(vol.Size);
+                            totalUsedBytes += ParseSizeToBytes(vol.Used);
                         }
 
                         int totalUsagePercent = totalSizeBytes > 0 ? (int)((totalUsedBytes * 100) / totalSizeBytes) : 0;
@@ -106,6 +149,7 @@ namespace DiskAvalailbleSpace
                         {
                             Host = hostConfig.Creditionals.Host,
                             Success = true,
+                            Volumes = volumeList,
                             TotalSizeBytes = totalSizeBytes,
                             TotalUsedBytes = totalUsedBytes,
                             TotalAvailableBytes = totalAvailableBytes,
@@ -119,6 +163,7 @@ namespace DiskAvalailbleSpace
                         {
                             Host = hostConfig.Creditionals.Host,
                             Success = false,
+                            Volumes = new List<VolumeInfo>(),
                             TotalSizeBytes = 0,
                             TotalUsedBytes = 0,
                             TotalAvailableBytes = 0,
@@ -141,6 +186,16 @@ namespace DiskAvalailbleSpace
                         total_used_bytes = item.TotalUsedBytes,
                         total_available_bytes = item.TotalAvailableBytes,
                         usage_percent = item.TotalUsagePercent,
+                        volumes = item.Volumes.Select(v => new
+                        {
+                            filesystem = v.Filesystem,
+                            size = v.Size,
+                            used = v.Used,
+                            available = v.Available,
+                            use_percent = v.UsePercent,
+                            mount_point = v.MountPoint,
+                            type = v.VolumeType
+                        }),
                         error = item.Error
                     }).ToArray()
                 };
@@ -170,6 +225,7 @@ namespace DiskAvalailbleSpace
 
             if (size.Length < 2) return 0;
 
+            // Handle sizes like "1.7G", "64T", "372G"
             char unit = size[^1];
             string numberPart = size[..^1].Trim();
 
