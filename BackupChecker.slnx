@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="CreateConfig/CreateConfig.csproj" Id="bea379be-3426-420a-9ebd-b078fc577514">
     <BuildDependency Project="HostLibrary/HostLibrary.csproj" />
   </Project>

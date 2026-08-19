@@ -22,3 +22,7 @@ Zabbix Agent с последующим формирование discovery rule �
 	- CheckBackup. Проверка бекапов, используя пути из hosts.json
 	- DiskAvailableSpace. Сбор данных о накопителях RAID, используя hosts.json.
 	- HostLibrary. Библиотека, для проектов выше.
+
+## Attachments
+![image1](_Attachments/RAIDStats.png)
+![image2](_Attachments/BackupExpired.png)
