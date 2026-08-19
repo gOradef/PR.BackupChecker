@@ -24,5 +24,5 @@ Zabbix Agent с последующим формирование discovery rule �
 	- HostLibrary. Библиотека, для проектов выше.
 
 ## Attachments
-![image1](_Attachments/RAIDStats.png)
-![image2](_Attachments/BackupExpired.png)
+![RaidStatusOnHosts](_Attachments/RAIDStats.png)
+![BackupExpiredProblem](_Attachments/BackupExpired.png)
